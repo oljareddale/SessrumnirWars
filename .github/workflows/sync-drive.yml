@@ -27,12 +27,14 @@ jobs:
       - name: Download index.html from Google Drive
         if: github.event_name == 'workflow_dispatch' || steps.check-time.outputs.hour == '12'
         run: |
-          curl -L "https://google.com" -o index.html
+          curl -fSL "https://drive.google.com/uc?export=download&id=11aSrVfwlhxQLJiUaeLf4hcw6O9Ln-D58" -o index.html.tmp
+          grep -q "Orna War Tracker" index.html.tmp
+          mv index.html.tmp index.html
 
       - name: Commit and push if changed
         if: github.event_name == 'workflow_dispatch' || steps.check-time.outputs.hour == '12'
         run: |
-          git config --local user.email "github-actions[bot]@://github.com"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add index.html
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update index.html from Google Drive" && git push)
