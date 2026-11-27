@@ -1,0 +1,24 @@
+name: Sync index.html from Google Drive
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download index.html from Google Drive
+        run: |
+          curl -L "https://drive.google.com/uc?export=download&id=11aSrVfwlhxQLJiUaeLf4hcw6O9Ln-D58" -o index.html
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add index.html
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update index.html from Google Drive" && git push)
