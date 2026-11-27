@@ -2,8 +2,8 @@ name: Sync index.html from Google Drive
 
 on:
   schedule:
-    # Runs daily at 18:00 UTC (12:00 PM CST)
-    - cron: '0 18 * * *'
+    # Triggers at both 17:00 UTC (noon CDT) and 18:00 UTC (noon CST)
+    - cron: '0 17,18 * * *'
   workflow_dispatch: # Allows manual runs anytime from the Actions tab
 
 permissions:
@@ -13,16 +13,26 @@ jobs:
   update-file:
     runs-on: ubuntu-latest
     steps:
+      - name: Check if it is noon Central Time
+        id: check-time
+        run: |
+          HOUR=$(TZ='America/Chicago' date +%H)
+          echo "Current Central Time hour: $HOUR"
+          echo "hour=$HOUR" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
+        if: github.event_name == 'workflow_dispatch' || steps.check-time.outputs.hour == '12'
         uses: actions/checkout@v4
 
       - name: Download index.html from Google Drive
+        if: github.event_name == 'workflow_dispatch' || steps.check-time.outputs.hour == '12'
         run: |
-          curl -fL "https://drive.google.com/uc?export=download&id=11aSrVfwlhxQLJiUaeLf4hcw6O9Ln-D58" -o index.html
+          curl -L "https://google.com" -o index.html
 
       - name: Commit and push if changed
+        if: github.event_name == 'workflow_dispatch' || steps.check-time.outputs.hour == '12'
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "github-actions[bot]@://github.com"
           git config --local user.name "github-actions[bot]"
           git add index.html
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update index.html from Google Drive" && git push)
